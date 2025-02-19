@@ -10,6 +10,7 @@ const QuickMessage = ({ loading, data, message }) => {
     const [messCurrent, setMessCurrent] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isSend, setIsSend] = useState(false); // TRạng thái đã gửi tin hay chưa (dùng để cập nhật dữ liệu tin nhắn thời gian thực).
+    const [suggesstion, setSuggesstion] = useState();
     const [dataInput, setDataInput] = useState('');
 
     useEffect(() => {
@@ -21,10 +22,25 @@ const QuickMessage = ({ loading, data, message }) => {
     }, [message]);
 
     useEffect(() => {
+        if(stateContext.state.isOpenQuickMessage){
+            setSuggesstion(data)
+        } else setSuggesstion(undefined)
+    }, [data, stateContext]);
+
+    useEffect(() => {
         if(isSend && userContext.newMessage){
             setMessCurrent(userContext.newMessage);
         }
     }, [isSend, userContext]);
+
+    useEffect(() => {
+        if(suggesstion?.id && userContext?.wsState){
+            userContext.wsState.send(JSON.stringify({
+                type: 'read-message',
+                suggesstion_id: suggesstion.id
+            }))
+        }
+    }, [suggesstion, userContext]);
 
     const handleChangeData = (e) => {
         setDataInput(e.target.value);
@@ -33,10 +49,10 @@ const QuickMessage = ({ loading, data, message }) => {
     const handleSendMessage = (e) => {
         if(e.key==='Enter' && !e.shiftKey){
             e.preventDefault();
-            if(dataInput.trim()!=='' && userContext.wsState && data.id){
+            if(dataInput.trim()!=='' && userContext.wsState && suggesstion?.id){
                 userContext.wsState.send(JSON.stringify({
                     type: 'send-message',
-                    suggesstion_id: data.id,
+                    suggesstion_id: suggesstion.id,
                     message: dataInput
                 }))
                 setDataInput('');
@@ -50,9 +66,9 @@ const QuickMessage = ({ loading, data, message }) => {
             <div className="flex flex-col justify-start items-center overflow-hidden" style={{ border: '1px solid #ccc', width: '330px', height: '86vh' }}>
                 {/* Phần đầu */}
                 <div className="w-full h-fit flex flex-col justify-start items-start">
-                    <span className="inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap font-semibold" style={{ fontSize: '16px' }}>Yêu cầu của {data?.users?.fullname}</span>
+                    <span className="inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap font-semibold" style={{ fontSize: '16px' }}>Yêu cầu của {suggesstion?.users?.fullname}</span>
                     {userContext?.usersOnline?.map(items => {
-                        if(items?.info?.id===data?.user_id){
+                        if(items?.info?.id===suggesstion?.user_id){
                             return(
                                 <div className="flex justify-start items-center w-full gap-2 pb-3" style={{ borderBottom: '1px solid #ccc' }}>
                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#3fbb46' }}></div>
