@@ -1,19 +1,21 @@
 import { Button, Input, Select } from "antd";
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getAllUser, getSuggesstionFiles, putSuggesstion } from "../../actions/DetailSuggesstion";
 import { useAuthContext } from "../../contexts/UserContext";
+import { sendMessage } from "../../api/websocket";
+import { getSuggesstion } from "../../api/suggesstion";
 
 const DetailSuggesstionJSX = () => {
     const userContext = useAuthContext();
-    const { state } = useLocation();
-    const { date, department_id, description, id, invite, note, status, user_id, users, updatedAt, deletedAt } = state;
+    const { state, pathname } = useLocation();
 
     const [files, setFiles] = useState([]); // SugggesstionFile theo suggesstion.
     const [account, setAccount] = useState([]); // Tất cả tài khoản khả dụng trong hệ thống.
+    const [infoSuggesstion, setInfoSuggesstion] = useState(); // Thông tin suggsstion được chuyển đến từ thông báo.
     const [dataInput, setDataInput] = useState({
-        note,
-        invite_id: invite.id
+        note: state?.note,
+        invite_id: state?.invite?.id
     }); // Dữ liệu nhập vào.
     const [inviteName, setInviteName] = useState(''); // Tên người xử lý (chỉ dành cho user thường).
 
@@ -39,7 +41,25 @@ const DetailSuggesstionJSX = () => {
             } else alert('Lỗi khi lấy tất cả tài khoản!');
         }
 
-        fetcher(id);
+        if(state===null){
+            const noti_id = pathname.split('/')[3];
+            const fetchSuggesstions = async () => {
+                try {
+                    const res = await getSuggesstion(1, 50, {});
+                    if (res.status === 200) {
+                        const dataRes = res.metadata.records;
+                        const targetSuggess= dataRes.find(items => items.id==noti_id);
+                        setInfoSuggesstion(targetSuggess);
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+            fetchSuggesstions();
+        }
+
+        const noti_id = pathname.split('/')[3];
+        fetcher(parseInt(noti_id));
         fetchAccount(1, 100);
     }, [state]);
 
@@ -48,6 +68,15 @@ const DetailSuggesstionJSX = () => {
         setInviteName(invite_name?.label || "");
     }, [state, account]);
 
+    useEffect(() => {
+        if(!state && infoSuggesstion){
+            setDataInput({
+                ...dataInput,
+                note: infoSuggesstion?.note,
+                invite_id: infoSuggesstion?.invite?.id
+            });
+        }
+    },[state, infoSuggesstion]);
 
     const handleClickFile = (filePath) => {
         if (filePath) {
@@ -74,12 +103,19 @@ const DetailSuggesstionJSX = () => {
 
         const data = {
             note: dataInput.note,
-            status: `${parseInt(status)+1}`,
+            status: state? `${parseInt(state?.status)+1}`: `${parseInt(state?.status)+1}`,
             invite_id: dataInput.invite_id
         }
-        const res = await putSuggesstion(id, data);
+        let res;
+        if(state){
+            res = await putSuggesstion(state?.id, data);
+        } else res = await putSuggesstion(infoSuggesstion?.id, data);
+
         if(res && res===200){
-            navigate('/de-nghi-nhu-cau')
+            if(state){
+                sendMessage(userContext.wsState, { invite_id: dataInput.invite_id, suggesstion_id: state?.id }, 'send-noti');
+            } else sendMessage(userContext.wsState, { invite_id: dataInput.invite_id, suggesstion_id: infoSuggesstion?.id }, 'send-noti');
+            navigate('/de-nghi-nhu-cau');
         } else {
             alert('Lỗi xử lý suggesstion!');
         }
@@ -90,24 +126,24 @@ const DetailSuggesstionJSX = () => {
             <div className="bg-white rounded-2xl flex justify-center items-center overflow-y-auto" style={{ width: '95%', height: '95%' }}>
                 <div className="flex flex-col justify-start items-start gap-6" style={{ width: '95%', height: '95%' }}>
                     <div className="w-full h-fit flex justify-between items-center">
-                        <span className="inline-block text-3xl font-extrabold">Chi tiết yêu cầu {id}</span>
+                        <span className="inline-block text-3xl font-extrabold">Chi tiết yêu cầu {state? state?.id: infoSuggesstion?.id}</span>
                         <div className="w-fit h-fit flex justify-start items-center gap-2">
                             <span className="inline-block text-3xl font-extrabold">Ngày:</span>
-                            <span className="inline-block text-3xl font-normal">{date.split(' ')[0]}</span>
+                            <span className="inline-block text-3xl font-normal">{state? state?.date.split(' ')[0]: infoSuggesstion?.date.split(' ')[0]}</span>
                         </div>
                     </div>
                     <div className="w-full h-full flex flex-col justify-start items-start text-lg gap-5">
                         <div className="w-full h-fit flex justify-start items-center gap-2">
                             <span className="inline-block font-medium">Họ và tên người yêu cầu:</span>
-                            <span>{users.fullname}</span>
+                            <span>{state? state?.users?.fullname: infoSuggesstion?.users?.fullname}</span>
                         </div>
                         <div className="w-full h-fit flex justify-start items-center gap-2">
                             <span className="inline-block font-medium">Phòng:</span>
-                            <span>{users.departments?.name ?? 'Tạm chưa có'}</span>
+                            <span>{state? state?.users?.departments?.name: infoSuggesstion? infoSuggesstion?.users?.departments?.name: 'Tạm chưa có'}</span>
                         </div>
                         <div className="w-full h-fit flex justify-start items-start gap-2">
                             <span className="inline-block font-medium">Mô tả:</span>
-                            <Input.TextArea size="large" rows={3} value={description} readOnly style={{ width: '60%'}} />
+                            <Input.TextArea size="large" rows={3} value={state? state?.description: infoSuggesstion?.description} readOnly style={{ width: '60%'}} />
                         </div>
                         <div className="w-4/5 h-fit flex justify-start items-center gap-4">
                             <span className="inline-block font-medium">Hình ảnh:</span>
@@ -136,14 +172,25 @@ const DetailSuggesstionJSX = () => {
                         <div className="w-full h-fit flex justify-start items-center gap-2">
                             <span className="inline-block font-medium">Trạng thái:</span>
                             {
-                                status==1?
-                                <span className="text-red-600 bg-red-100 font-bold py-1 px-2 rounded">Chưa xử lý</span>:
-                                status==2?
-                                <span className="text-yellow-600 bg-yellow-100 font-bold py-1 px-2 rounded">Đang xử lý</span>:
-                                <span className="text-green-600 bg-green-100 font-bold py-1 px-2 rounded">Đã xử lý</span>
+                                state?
+                                    state?.status==1?
+                                    <span className="text-red-600 bg-red-100 font-bold py-1 px-2 rounded">Chưa xử lý</span>:
+                                    state?.status==2?
+                                    <span className="text-yellow-600 bg-yellow-100 font-bold py-1 px-2 rounded">Đang xử lý</span>:
+                                    <span className="text-green-600 bg-green-100 font-bold py-1 px-2 rounded">Đã xử lý</span>
+                                : 
+                                    infoSuggesstion?.status==1?
+                                    <span className="text-red-600 bg-red-100 font-bold py-1 px-2 rounded">Chưa xử lý</span>:
+                                    infoSuggesstion?.status==2?
+                                    <span className="text-yellow-600 bg-yellow-100 font-bold py-1 px-2 rounded">Đang xử lý</span>:
+                                    <span className="text-green-600 bg-green-100 font-bold py-1 px-2 rounded">Đã xử lý</span>
                             }
                             <span className="inline-block font-medium ml-10">Lúc: </span>
-                            <span>{deletedAt===null? updatedAt: deletedAt}</span>
+                            <span>{
+                                state?
+                                state?.deletedAt===null? state?.updatedAt: state?.deletedAt:
+                                infoSuggesstion?.deletedAt===null? infoSuggesstion?.updatedAt: infoSuggesstion?.deletedAt    
+                            }</span>
                         </div>
                         <div className="w-full h-fit flex justify-start items-start gap-2">
                             <span className="inline-block font-medium">Ghi chú:</span>
@@ -154,7 +201,11 @@ const DetailSuggesstionJSX = () => {
                             {
                                 userContext.authState.user?.role_id<4?
                                 <Select options={account} value={dataInput.invite_id} onSelect={handleSelectUser} allowClear placeholder="Chọn người xử lý" onClear={() => setDataInput({...dataInput, invite_id: null})} style={{ minWidth: '200px'}} />:
-                                <span>{inviteName}</span>
+                                <span>{inviteName.trim()===''? 'Tạm chưa có': 
+                                    state?
+                                    state?.invite?.departments?.name? `${state?.invite?.fullname} - ${state?.invite?.departments.name}`: state?.invite?.fullname:
+                                    infoSuggesstion?.invite?.departments?.name? `${infoSuggesstion?.invite?.fullname} - ${infoSuggesstion?.invite?.departments.name}`: infoSuggesstion?.invite?.fullname
+                                }</span>
                             }
                         </div>
                         {

@@ -1,19 +1,63 @@
-import { Input } from "antd";
+import { Button, Input, Upload } from "antd";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuthContext } from "../../contexts/UserContext";
+import { createSuggesstion } from "../../api/suggesstion";
+
+const urlUploadFiles = 'http://localhost:5001/api/upload';
 
 const CreateSuggesstion = () => {
   const { authState } = useAuthContext();
   const { user } = authState;
 
   const [currentDate, setCurrentDate] = useState("");
+  const [desc, setDesc] = useState('');
+  const [files, setFiles] = useState([]);
 
   useEffect(() => {
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
     setCurrentDate(formattedDate);
   }, []);
+
+  const handleDataChange = (e) => {
+    setDesc(e.target.value);
+  }
+
+  const handleUploadFiles = async ({ fileList }) => {
+    setFiles(fileList.map(items => {
+      return items.originFileObj;
+    }))
+  }
+  
+  const handleCreate = async () => {
+    if(desc.trim()==="") return alert("Vui lòng nhập nội dung yêu cầu!");
+
+    const formData = new FormData();
+    files.forEach(items => {
+      formData.append('files', items)
+    })
+    try {
+      const res = await fetch(urlUploadFiles, {
+        method: "POST",
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${authState?.token}`
+        }
+      });
+
+      if(res.ok){
+        const dataRes = await res.json();
+        if(dataRes?.status===201){
+          await createSuggesstion({ description: desc, files: dataRes.metadata });
+          window.location.href = '/de-nghi-nhu-cau'
+        }       
+      }
+    } catch (error) {
+      alert("Đã xảy ra lỗi trong quá trình xử lý file!");
+      console.error("Lỗi upload file: ", error)
+    }
+  }
 
   return (
     <div className="container relative mx-8 p-6 bg-white rounded-xl shadow-lg min-h-[100%]">
@@ -51,8 +95,30 @@ const CreateSuggesstion = () => {
         <div className="flex space-x-4">
           <div className="flex-1">
             <label className="block text-gray-700 font-semibold mb-1">Nội dung <span className="text-red-500">*</span></label>
-            <Input.TextArea placeholder="Nội dung" required size="large" rows={6} />
+            <Input.TextArea placeholder="Nội dung" required size="large" rows={6} value={desc} onChange={handleDataChange} />
           </div>
+        </div>
+        <div className="w-fit">
+          <Upload
+            listType="text"
+            multiple
+            showUploadList={{
+              extra: ({ size = 0 }) => (
+                <span style={{ color: '#cccccc' }}>({(size / 1024 / 1024).toFixed(2)}MB)</span>
+              ),
+              showDownloadIcon: true,
+              downloadIcon: 'Download',
+              showRemoveIcon: true
+            }}
+            onChange={handleUploadFiles}
+            beforeUpload={() => false}
+          >
+            <i className="fa-solid fa-upload"></i>
+            <span>Tải file lên</span>
+          </Upload>
+        </div>
+        <div className="flex justify-center items-center">
+          <Button size="large" type="primary" onClick={handleCreate}>Gửi yêu cầu</Button>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { Table, DatePicker, Select, Button, Row, Col } from "antd";
 import moment from "moment";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../contexts/UserContext";
+import { useStateContext } from "../../contexts/StateContext";
 
 const { RangePicker } = DatePicker;
 
@@ -22,9 +23,9 @@ const Suggesstion = () => {
   const [status, setStatus] = useState(null);
 
   const navigate = useNavigate();
+  // const stateContext = useStateContext();
   const { authState } = useAuthContext();
   const { user } = authState;
-  console.log(user);
 
   const fetchSuggesstion = async () => {
     setLoading(true);
@@ -69,29 +70,37 @@ const Suggesstion = () => {
       dataIndex: "stt",
       key: "stt",
       render: (text, record, index) => index + 1,
+      width: '60px'
     },
     {
       title: "NGÀY",
       dataIndex: "date",
       key: "date",
       render: (text, record) => formatDate(record?.date),
+      width: '120px'
     },
     {
       title: "KHOA, BAN, BỘ PHẬN",
       dataIndex: "department",
       key: "department",
       render: (text, record) => record?.department?.name,
+      width: '180px',
+      ellipsis: true
     },
     {
       title: "TÊN NGƯỜI ĐĂNG KÝ",
       dataIndex: "name",
       key: "name",
       render: (text, record) => record?.users?.fullname,
+      width: '180px',
+      ellipsis: true
     },
     {
       title: "NỘI DUNG",
-      dataIndex: "content",
+      dataIndex: "description",
       key: "description",
+      ellipsis: true,
+      width: '200px'
     },
     {
       title: "TRẠNG THÁI",
@@ -111,6 +120,8 @@ const Suggesstion = () => {
       title: "GHI CHÚ",
       dataIndex: "note",
       key: "note",
+      width: '180px',
+      ellipsis: true
     },
     {
       title: "",
@@ -209,18 +220,13 @@ const Suggesstion = () => {
         </Select>
       </Col>
 
-      {/* Nút áp dụng lọc */}
-      {/* <Col span={6}>
-        <Button type="primary" onClick={fetchSuggesstion} className="w-full">
-          Lọc
-        </Button>
-      </Col> */}
     </Row>
 
       <div class="w-full overflow-x-auto">
         <Table
           columns={column}
           dataSource={suggesstion}
+          // dataSource={stateContext.state.isShowViewNoti? suggesstion: suggess}
           pagination={{
             current: pagination.page,
             pageSize: pagination.limit,
