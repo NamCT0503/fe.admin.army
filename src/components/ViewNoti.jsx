@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNoti } from "../contexts/NotiContext";
-import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../contexts/UserContext";
+import { useWsContext } from "../contexts/Websocet";
 
 const ViewNotiJSX = ({ open }) => {
     const notiContext = useNoti();
-    const userContext = useAuthContext();
+    const wsContext = useWsContext();
 
     const [notis, setNotis] = useState([]);
     const [display, setDisplay] = useState('flex');
     const [transY, setTransY] = useState('translateY(100%)');
-
-    const navigate = useNavigate();
 
     useEffect(() => {
         setNotis(notiContext.noti.items);
@@ -36,8 +33,8 @@ const ViewNotiJSX = ({ open }) => {
         const noti_id = direction.split('/')[3];
 
         if(noti_id){
-            if(userContext) {
-                const wsState = userContext.wsState;
+            if(wsContext) {
+                const wsState = wsContext.wsState;
                 if (wsState && wsState.readyState === WebSocket.OPEN) {
                     wsState.send(JSON.stringify({ type: 'is-read-noti', noti_id: data.id, suggesstion_id: parseInt(noti_id) })); 
                 } else {
@@ -45,7 +42,6 @@ const ViewNotiJSX = ({ open }) => {
                 }
             }
 
-            // navigate(direction);
             window.location.href = direction
         }
     }

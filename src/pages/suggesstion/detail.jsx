@@ -5,9 +5,11 @@ import { getAllUser, getSuggesstionFiles, putSuggesstion } from "../../actions/D
 import { useAuthContext } from "../../contexts/UserContext";
 import { sendMessage } from "../../api/websocket";
 import { getSuggesstion } from "../../api/suggesstion";
+import { useWsContext } from "../../contexts/Websocet";
 
 const DetailSuggesstionJSX = () => {
     const userContext = useAuthContext();
+    const wsContext = useWsContext();
     const { state, pathname } = useLocation();
 
     const [files, setFiles] = useState([]); // SugggesstionFile theo suggesstion.
@@ -112,9 +114,12 @@ const DetailSuggesstionJSX = () => {
         } else res = await putSuggesstion(infoSuggesstion?.id, data);
 
         if(res && res===200){
+            // if(state){
+            //     sendMessage(userContext.wsState, { invite_id: dataInput.invite_id, suggesstion_id: state?.id }, 'send-noti');
+            // } else sendMessage(userContext.wsState, { invite_id: dataInput.invite_id, suggesstion_id: infoSuggesstion?.id }, 'send-noti');
             if(state){
-                sendMessage(userContext.wsState, { invite_id: dataInput.invite_id, suggesstion_id: state?.id }, 'send-noti');
-            } else sendMessage(userContext.wsState, { invite_id: dataInput.invite_id, suggesstion_id: infoSuggesstion?.id }, 'send-noti');
+                sendMessage(wsContext.wsState, { invite_id: dataInput.invite_id, suggesstion_id: state?.id }, 'send-noti');
+            } else sendMessage(wsContext.wsState, { invite_id: dataInput.invite_id, suggesstion_id: infoSuggesstion?.id }, 'send-noti');
             navigate('/de-nghi-nhu-cau');
         } else {
             alert('Lỗi xử lý suggesstion!');

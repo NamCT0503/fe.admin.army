@@ -1,11 +1,13 @@
 import { Drawer, Input } from "antd"
 import { useStateContext } from "../../contexts/StateContext";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthContext } from "../../contexts/UserContext";
+import { useWsContext } from "../../contexts/Websocet";
 
 const QuickMessage = ({ loading, data, message }) => {
     const stateContext = useStateContext();
     const userContext = useAuthContext();
+    const wsContext = useWsContext();
 
     const [messCurrent, setMessCurrent] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -28,19 +30,19 @@ const QuickMessage = ({ loading, data, message }) => {
     }, [data, stateContext]);
 
     useEffect(() => {
-        if(isSend && userContext.newMessage){
-            setMessCurrent(userContext.newMessage);
+        if(isSend && wsContext.newMessage){
+            setMessCurrent(wsContext.newMessage);
         }
-    }, [isSend, userContext]);
+    }, [isSend, wsContext]);
 
     useEffect(() => {
-        if(suggesstion?.id && userContext?.wsState){
-            userContext.wsState.send(JSON.stringify({
+        if(suggesstion?.id && wsContext?.wsState){
+            wsContext.wsState.send(JSON.stringify({
                 type: 'read-message',
                 suggesstion_id: suggesstion.id
             }))
         }
-    }, [suggesstion, userContext]);
+    }, [suggesstion, wsContext]);
 
     const handleChangeData = (e) => {
         setDataInput(e.target.value);
@@ -49,8 +51,8 @@ const QuickMessage = ({ loading, data, message }) => {
     const handleSendMessage = (e) => {
         if(e.key==='Enter' && !e.shiftKey){
             e.preventDefault();
-            if(dataInput.trim()!=='' && userContext.wsState && suggesstion?.id){
-                userContext.wsState.send(JSON.stringify({
+            if(dataInput.trim()!=='' && wsContext.wsState && suggesstion?.id){
+                wsContext.wsState.send(JSON.stringify({
                     type: 'send-message',
                     suggesstion_id: suggesstion.id,
                     message: dataInput
@@ -67,7 +69,7 @@ const QuickMessage = ({ loading, data, message }) => {
                 {/* Phần đầu */}
                 <div className="w-full h-fit flex flex-col justify-start items-start">
                     <span className="inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap font-semibold" style={{ fontSize: '16px' }}>Yêu cầu của {suggesstion?.users?.fullname}</span>
-                    {userContext?.usersOnline?.map(items => {
+                    {wsContext?.usersOnline?.map(items => {
                         if(items?.info?.id===suggesstion?.user_id){
                             return(
                                 <div className="flex justify-start items-center w-full gap-2 pb-3" style={{ borderBottom: '1px solid #ccc' }}>
