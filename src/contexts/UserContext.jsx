@@ -16,6 +16,8 @@ export const AuthProvider = ({ children }) => {
     error: null,
   });
   const [websoket, setWebsocket] = useState();   
+  const [usersOnline, setUsersOnline] = useState([]);
+  const [newMessage, setNewMessage] = useState([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -34,11 +36,17 @@ export const AuthProvider = ({ children }) => {
       const socket = new WebSocket(`${WS_HOST}?token=${state.token}`);
       socket.onopen = () => console.log('Connected to Websocket!');
       socket.onmessage = async (event) => {
-          console.log('Message revice: ', event);
+          // console.log('Message revice: ', event);
           const data = JSON.parse(event.data);
           if(data.type==='revice-noti'){
             const messages = Array.isArray(data.message) ? data.message : [data.message];
             notiContext.dispatch({ type: 'LOAD_NOTI', payload: { items: messages, no_read: messages.length } })
+          }
+          if(data.type==='users-online'){
+            setUsersOnline(data.message);
+          }
+          if(data.type==='new-message'){
+            setNewMessage(data.message);
           }
       }
       socket.onclose = () => console.log('Disconnected to Websocket!');
@@ -49,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ authState: state, dispatch, wsState: websoket }}>
+    <AuthContext.Provider value={{ authState: state, dispatch, wsState: websoket, usersOnline, newMessage }}>
       {children}
     </AuthContext.Provider>
   );

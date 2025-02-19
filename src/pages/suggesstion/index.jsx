@@ -5,6 +5,8 @@ import moment from "moment";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../contexts/UserContext";
 import { useStateContext } from "../../contexts/StateContext";
+import QuickMessage from "../../components/quick-message";
+import { getListMessage } from "../../api/message";
 
 const { RangePicker } = DatePicker;
 
@@ -21,9 +23,13 @@ const Suggesstion = () => {
   const [endDate, setEndDate] = useState(null);
   const [department, setDepartment] = useState(null);
   const [status, setStatus] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState(true);
+  const [message, setMessage] = useState([]);
+  const [chatCurrent, setChatCurrent] = useState();
 
   const navigate = useNavigate();
-  // const stateContext = useStateContext();
+  const stateContext = useStateContext();
   const { authState } = useAuthContext();
   const { user } = authState;
 
@@ -51,11 +57,29 @@ const Suggesstion = () => {
     document.title = "Đề nghị, nhu cầu";
   }, [pagination.page, startDate, endDate, department, status]);
 
-  const handleEdit = (record) => {
+  useEffect(() => {
+    setIsOpen(stateContext.state.isOpenQuickMessage);
+  }, [stateContext.state])
+
+  const getMessages = async (suggesstion_id, limit, page) => {
+    const res = await getListMessage(suggesstion_id, limit, page);
+    if(res.status && res.status===200){
+      setMessage(res.metadata.records);
+    }
+  }
+
+  const handleEdit = (e, record) => {
+    setLoadingMessage(true);
+    e.stopPropagation();
     console.log(record);
+    setChatCurrent(record);
+    getMessages(record.id, 10, 1);
+    stateContext.dispatch({ type: 'OPEN_QUICK_MESSAGE' })
+    setLoadingMessage(false);
   };
 
-  const handleDelete = (record) => {
+  const handleDelete = (e, record) => {
+    e.stopPropagation();
     console.log(record);
   };
 
@@ -120,7 +144,7 @@ const Suggesstion = () => {
       title: "GHI CHÚ",
       dataIndex: "note",
       key: "note",
-      width: '180px',
+      width: '150px',
       ellipsis: true
     },
     {
@@ -132,14 +156,14 @@ const Suggesstion = () => {
           return (
             <div className="flex justify-center space-x-2">
               <button
-                onClick={() => handleDelete(record)}
-                className="px-4 py-1 bg-red-600 border border-red-700 rounded-md shadow-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150 ease-in-out"
+                onClick={(e) => handleDelete(e, record)}
+                className="px-4 py-1 bg-red-600 border border-red-700 rounded-md shadow-sm text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150 ease-in-out cursor-pointer"
               >
                 Xóa
               </button>
               <button
-                onClick={() => handleEdit(record)}
-                className="px-4 py-1 bg-blue-600 border border-blue-700 rounded-md shadow-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+                onClick={(e) => handleEdit(e, record)}
+                className="px-4 py-1 bg-blue-600 border border-blue-700 rounded-md shadow-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 ease-in-out cursor-pointer"
               >
                 Nhắn tin
               </button>
@@ -226,7 +250,6 @@ const Suggesstion = () => {
         <Table
           columns={column}
           dataSource={suggesstion}
-          // dataSource={stateContext.state.isShowViewNoti? suggesstion: suggess}
           pagination={{
             current: pagination.page,
             pageSize: pagination.limit,
@@ -241,6 +264,7 @@ const Suggesstion = () => {
           loading={loading}
         />
       </div>
+      <QuickMessage loading={loadingMessage} data={chatCurrent} message={message} />
     </div>
   );
 };

@@ -45,7 +45,8 @@ const ViewNotiJSX = ({ open }) => {
                 }
             }
 
-            navigate(direction);
+            // navigate(direction);
+            window.location.href = direction
         }
     }
 
