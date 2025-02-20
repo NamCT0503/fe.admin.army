@@ -111,6 +111,13 @@ const Sidebar = () => {
           </div>
         </li>
 
+        {/* Tin nhắn */}
+        <li className="w-full text-white font-bold uppercase mb-4">
+          <Link to="/tin-nhan" className="block w-full py-2 hover:bg-sky-800 hover:pl-3 duration-150">
+            Tin nhắn
+          </Link>
+        </li>
+
         {/* Đăng xuất */}
         <li className="mt-auto w-full text-white font-bold uppercase">
           <button

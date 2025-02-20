@@ -10,6 +10,7 @@ import CreateSuggesstion from "../pages/suggesstion/create";
 import CreateItem from "../pages/item/create";
 import CreateAccount from "../pages/account/create";
 import DetailSuggesstionJSX from "../pages/suggesstion/detail";
+import ChatJSX from "../pages/chat";
 
 const routes = [
     {
@@ -126,6 +127,10 @@ const routes = [
         path: "/tai-khoan/them-moi",
         Component: CreateAccount,
         Layout: MainLayout,
+    },
+    {
+        path: '/tin-nhan',
+        Component: ChatJSX
     }
 ]
 
