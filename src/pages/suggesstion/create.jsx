@@ -29,6 +29,32 @@ const CreateSuggesstion = () => {
       return items.originFileObj;
     }))
   }
+
+  const handleTypeImage = (file) => {
+    const types = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    
+    if(!types.includes(file.type)){
+      alert('Ảnh tải lên phải có định dạng .png, .jpef, .jpg hoặc .webp');
+      return Upload.LIST_IGNORE;
+    }
+    return false;
+  }
+
+  const handleTypeFile = (file) => {
+    const types = [
+      'application/pdf', // PDF
+      'application/msword', // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'text/plain', // .txt
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    ];
+    
+    if(!types.includes(file.type)){
+      alert('File tải lên phải có định dạng .pdf, .doc, .docx, .txt hoặc .xlsx');
+      return Upload.LIST_IGNORE;
+    }
+    return false;
+  }
   
   const handleCreate = async () => {
     if(desc.trim()==="") return alert("Vui lòng nhập nội dung yêu cầu!");
@@ -98,8 +124,10 @@ const CreateSuggesstion = () => {
             <Input.TextArea placeholder="Nội dung" required size="large" rows={6} value={desc} onChange={handleDataChange} />
           </div>
         </div>
-        <div className="w-fit">
+        <div className="w-full flex justify-start items-start gap-4">
+          <span className="inline-block font-semibold">Đính kèm ảnh (nếu có):</span>
           <Upload
+            className="cursor-pointer grow"
             listType="text"
             multiple
             showUploadList={{
@@ -111,7 +139,29 @@ const CreateSuggesstion = () => {
               showRemoveIcon: true
             }}
             onChange={handleUploadFiles}
-            beforeUpload={() => false}
+            // beforeUpload={() => false}
+            beforeUpload={handleTypeImage}
+          >
+            <i className="fa-solid fa-upload"></i>
+            <span>Tải ảnh lên</span>
+          </Upload>
+        </div>
+        <div className="w-full flex justify-start items-start gap-4">
+          <span className="inline-block font-semibold">Đính kèm file (nếu có):</span>
+          <Upload
+            className="cursor-pointer grow"
+            listType="text"
+            multiple
+            showUploadList={{
+              extra: ({ size = 0 }) => (
+                <span style={{ color: '#cccccc' }}>({(size / 1024 / 1024).toFixed(2)}MB)</span>
+              ),
+              showDownloadIcon: true,
+              downloadIcon: 'Download',
+              showRemoveIcon: true
+            }}
+            onChange={handleUploadFiles}
+            beforeUpload={handleTypeFile}
           >
             <i className="fa-solid fa-upload"></i>
             <span>Tải file lên</span>

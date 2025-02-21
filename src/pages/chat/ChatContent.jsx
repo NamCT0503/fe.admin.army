@@ -16,6 +16,8 @@ const ChatContentJSX = () => {
     const { state } = useLocation(); // Suggesstion_id.
 
     useEffect(() => {
+        if(!state) return;
+
         const fetcher = async (suggesstion_id, page, limit) => {
             const res = await getListMessage(suggesstion_id, limit, page);
             if(res && res?.status===200){

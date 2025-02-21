@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+.ant-upload-list-item-actions > *{
+    opacity: 1 !important;
+}
