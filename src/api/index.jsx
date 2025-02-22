@@ -83,7 +83,9 @@ export const update = async (endpoint, data) => {
     return response.data;
   } catch (error) {
     console.error("PUT request error: ", error);
-    throw error;
+    if(error.response.data){
+      return error.response.data
+    } else throw error;
   }
 };
 

@@ -20,7 +20,7 @@ export const WsProvider = ({ children }) => {
             const socket = new WebSocket(`${WS_HOST}?token=${authState.token}`);
             socket.onopen = () => console.log('Connected to Websocket!');
             socket.onmessage = async (event) => {
-                console.log('Message revice: ', event);
+                // console.log('Message revice: ', event);
                 const data = JSON.parse(event.data);
                 if(data.type==='revice-noti'){
                     const messages = data.message;
@@ -36,7 +36,7 @@ export const WsProvider = ({ children }) => {
             socket.onclose = () => console.log('Disconnected to Websocket!');
 
             setWebsocket(socket);
-        }, 2000)
+        }, 3000)
     }, [authState.token]);
 
     return(

@@ -11,6 +11,7 @@ import CreateItem from "../pages/item/create";
 import CreateAccount from "../pages/account/create";
 import DetailSuggesstionJSX from "../pages/suggesstion/detail";
 import ChatJSX from "../pages/chat";
+import DetailAccountJSX from "../pages/account/DetailAccount";
 
 const routes = [
     {
@@ -77,6 +78,11 @@ const routes = [
         path: "/danh-sach-tai-khoan",
         Component: Account,
         Layout: MainLayout,
+    },
+    {
+        path: '/danh-sach-tai-khoan/chi-tiet-tai-khoan/*',
+        Component: DetailAccountJSX,
+        Layout: MainLayout
     },
     {
         path: "/doi-mat-khau",

@@ -1,8 +1,14 @@
 import { get, update, del, post } from "./index";
 
-export const getAccount = async (page, limit) => {
-  const filter = new URLSearchParams({ page, limit });
-  return await get(`/user/get?${filter.toString()}`);
+export const getAccount = async (page, limit, filter, ) => {
+  // const filter = new URLSearchParams({ page, limit, is_paranoid });
+  const params = new URLSearchParams({ page, limit });
+  Object.entries({
+    is_paranoid: filter.is_paranoid,
+    department_id: filter.department
+}).reduce((acc, [key, value]) => (value!==null || value!=='' ? params.append(key, value) : acc), params);
+
+  return await get(`/user/get?${params.toString()}`);
 };
 
 export const createAccount = async (params) => {
@@ -10,9 +16,9 @@ export const createAccount = async (params) => {
 };
 
 export const updateAccount = async (id, params) => {
-  return await update(`/account/${id}`, params);
+  return await update(`/user/update/${id}`, params);
 };
 
-export const deleteAccount = async (id) => {
-  return await del(`/account/${id}`);
+export const deleteAccount = async (id, is_delete) => {
+  return await del(`user/delete/${id}?is_delete=${is_delete}`);
 };
