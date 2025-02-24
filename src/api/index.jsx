@@ -62,6 +62,12 @@ export const get = async (endpoint) => {
     const response = await api.get(endpoint);
     return response.data;
   } catch (error) {
+    if(error.response.data?.message?.includes('expired')){
+      if(localStorage.getItem('accessToken')){
+        localStorage.removeItem('accessToken');
+      }
+      return window.location.href = "/dang-nhap";
+    }
     console.error("GET request error: ", error);
     throw error;
   }
@@ -72,6 +78,12 @@ export const post = async (endpoint, data, config) => {
     const response = await api.post(endpoint, data, config);
     return response.data;
   } catch (error) {
+    if(error.response.data?.message?.includes('expired')){
+      if(localStorage.getItem('accessToken')){
+        localStorage.removeItem('accessToken');
+      }
+      return window.location.href = "/dang-nhap";
+    }
     console.error("POST request error: ", error);
     throw error;
   }
@@ -82,7 +94,12 @@ export const update = async (endpoint, data) => {
     const response = await api.put(endpoint, data);
     return response.data;
   } catch (error) {
-    console.error("PUT request error: ", error);
+    if(error.response.data?.message?.includes('expired')){
+      if(localStorage.getItem('accessToken')){
+        localStorage.removeItem('accessToken');
+      }
+      return window.location.href = "/dang-nhap";
+    }
     if(error.response.data){
       return error.response.data
     } else throw error;
@@ -94,6 +111,12 @@ export const del = async (endpoint) => {
     const response = await api.delete(endpoint);
     return response.data;
   } catch (error) {
+    if(error.response.data?.message?.includes('expired')){
+      if(localStorage.getItem('accessToken')){
+        localStorage.removeItem('accessToken');
+      }
+      return window.location.href = "/dang-nhap";
+    }
     console.error("DELETE request error: ", error);
     throw error;
   }
