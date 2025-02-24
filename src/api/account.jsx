@@ -5,7 +5,8 @@ export const getAccount = async (page, limit, filter, ) => {
   const params = new URLSearchParams({ page, limit });
   Object.entries({
     is_paranoid: filter.is_paranoid,
-    department_id: filter.department
+    department_id: filter.department,
+    name: filter.name
 }).reduce((acc, [key, value]) => (value!==null || value!=='' ? params.append(key, value) : acc), params);
 
   return await get(`/user/get?${params.toString()}`);

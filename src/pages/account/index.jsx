@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthContext } from '../../contexts/UserContext';
 import { deleteAccount, getAccount } from '../../api/account';
-import { Col, Row, Select, Table } from 'antd';
+import { Col, Input, Row, Select, Table } from 'antd';
 import { getAllDepartment } from '../../api/department';
 
 const Account = () => {
@@ -16,6 +16,7 @@ const Account = () => {
     total: 0,
   });
   const [department, setDepartment] = useState(null);
+  const [nameInput, setNameInput] = useState(null);
   const [departments, setDepartments] = useState([]);
 
   const navigate = useNavigate();
@@ -48,9 +49,9 @@ const Account = () => {
         } else alert(res?.message ?? 'Lỗi lấy danh sách tài khoản!');
       }
 
-      fetcher(pagination.page, pagination.limit, { is_paranoid: 0, department });
+      fetcher(pagination.page, pagination.limit, { is_paranoid: 0, department, name: nameInput });
     }
-  }, [authState, pagination.page, department]);
+  }, [authState, pagination.page, department, nameInput]);
 
   useEffect(() => {
     if(authState?.user){
@@ -191,6 +192,11 @@ const Account = () => {
               options={departments}
               onChange={(value) => setDepartment(value)}
             />
+          </Col>
+          {/* Tìm kiếm theo fullname, username */}
+          <Col span={6}>
+            <label className="font-medium">Khoa, ban, bộ phận:</label>
+            <Input value={nameInput} onChange={(e) => setNameInput(e.target.value)} placeholder='Tìm kiếm theo họ tên, tài khoản' />
           </Col>
         </Row>
 
