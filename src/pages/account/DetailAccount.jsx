@@ -1,8 +1,9 @@
 import { Button, Popconfirm } from "antd";
 import { DeleteOutlined } from "@ant-design/icons"
 import { useLocation } from "react-router-dom";
-import { updateAccount } from "../../api/account";
+// import { updateAccount } from "../../api/account";
 import { useAuthContext } from "../../contexts/UserContext";
+import { deleteDeviceFinger } from "../../api/account";
 
 const DetailAccountJSX = () => {
     const { authState } = useAuthContext();
@@ -10,7 +11,8 @@ const DetailAccountJSX = () => {
 
     const handleDelete = async () => {
         if(state && state?.id){
-            const res = await updateAccount(state.id, { device_finger: null })
+            // const res = await updateAccount(state.id, { device_finger: null })
+            const res = await deleteDeviceFinger(state.id);
             if(res?.status===200){
                 alert(res.message);
                 window.location.href = '/danh-sach-tai-khoan';
@@ -52,8 +54,8 @@ const DetailAccountJSX = () => {
                             }
                         </div>
                         <span className="inline-block"><b>Chức vụ: </b>{state.roles.name}</span>
-                        <span className="inline-block"><b>Phòng/Ban/Bộ phận: </b>{state.department_name}</span>
-                        <span className="inline-block"><b>Kho: </b>{state.storages.name}</span>
+                        <span className="inline-block"><b>Phòng/Ban/Bộ phận: </b>{state.department_name ?? 'Tạm không có'}</span>
+                        <span className="inline-block"><b>Kho: </b>{state.storages?.name ?? 'Tạm không có'}</span>
                     </div>
                 </div>
             </div>
